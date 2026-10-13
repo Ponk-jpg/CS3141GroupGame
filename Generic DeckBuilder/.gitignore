@@ -107,3 +107,23 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Aseprite (Pixel Art tool auto-saves and backup files)
+*.aseprite-backup
+.aseprite/
+
+# Photoshop (Temporary scratch and recovery files)
+*.tmp
+~ps*.tmp
+
+# Krita (Auto-save files)
+*.kra~
+.*.kra~
+*.autosave
+
+# Clip Studio Paint (Backup folders)
+DocumentBackup/
+InitialBackup/
+
+# Spine 2D Animation (Backup files)
+*.spine.bak
