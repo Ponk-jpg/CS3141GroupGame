@@ -13,8 +13,16 @@ MonoBehaviour:
   m_Name: Strike
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   Name: Strike
-  Description: Deal 6 damage
+  Description: Deal [D] damage
   energyCost: 1
   artwork: {fileID: 0}
   cardID: 0
   targetType: 1
+  cardEffectsPool:
+  - effectType: 0
+    targetFilter: 0
+    intensityValue: 6
+    repeatCount: 1
+    statusToApply: {fileID: 0}
+  attackDamageValue: 6
+  blockValue: 0

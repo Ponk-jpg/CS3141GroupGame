@@ -5,12 +5,21 @@ using UnityEngine.EventSystems;
 using static System.Net.Mime.MediaTypeNames;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System;
 
+
+// THIS IS A BIG MF CLASS, just a heads up as it does quite a bit. 
+// this class mainly controls what UI elements are doing what for all of the cards on screen, along with displaying UI elements
+// for the player to see what is happening with a given card.
 [RequireComponent(typeof(CanvasGroup))]
 public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
+    [Header("Energy Cost Colors")]
+    public Color affordableColor = Color.white;
+    public Color expensiveColor = Color.red;
+
     [Header("Targeting Settings")]
-    [Tooltip("How many pixels to drop the arros starting point to better fit")]
+    [Tooltip("How many pixels to drop the arrows starting point to better fit")]
     public float arrowBaseYOffset = 150f;
 
     [Header("UI Visual References")]
@@ -38,6 +47,7 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     private int originalSiblingIndex;
     private bool isHovered = false;
     private bool isDragging = false;
+    private bool isDragAllowed = true;
 
     private RectTransform rectTransform;
     private Canvas mainCanvas;
@@ -48,8 +58,88 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     {
         return myCardData;
     }
+    // delegate enabler
+    private void OnEnable()
+    {
+        DeckManager.OnEnergyChanged += UpdateCostColor;
 
+        StatusController.OnAnyStatusChanged += HandleGlobalStatusChanged;
 
+    }
+    
+    // delegate disabler
+    private void OnDisable()
+    {
+        DeckManager.OnEnergyChanged -= UpdateCostColor;
+
+        StatusController.OnAnyStatusChanged -= HandleGlobalStatusChanged;
+
+    }
+    
+    // delegate handler for basic conditions.
+    private void HandleGlobalStatusChanged()
+    {
+        RefreshDynamicDescription(null);
+    }
+    
+    // updates the cost color for a given card, ie when we dont have the energy to play it.
+    private void UpdateCostColor(int currentEnergy, int maxEnergy)
+    {
+        if (costText == null || myCardData == null) return;
+
+        if (myCardData.energyCost > currentEnergy)
+        {
+
+            costText.color = expensiveColor;
+
+        }
+        else
+        {
+            costText.color = affordableColor;
+        }
+
+    }
+
+    // Call this helper to rebuild text and handle template tag replacements dynamically
+    // mainly used to replace the text on cards whenever a status effect updates that data.
+    public void RefreshDynamicDescription(CombatEnemy activeTarget = null)
+    {
+        if (myCardData == null || descriptionText == null) return;
+
+        PlayerStats player = UnityEngine.Object.FindAnyObjectByType<PlayerStats>();
+
+        string parsedDescription = myCardData.Description;
+
+        foreach (CardEffectData effect in myCardData.cardEffectsPool)
+        {
+            if (effect.effectType == EffectType.DealDamage)
+            {
+                // If activeTarget is null, it passes null to skip checking Vulnerable on hand-view rendering frames
+                int modifiedDamage = DamageCalculator.CalculateModifiedDamage(effect.intensityValue, player, activeTarget);
+
+                string colorHex = "#FFFFFF";
+                if (modifiedDamage > effect.intensityValue) colorHex = "#00FF00"; // Green (Buffed)
+                else if (modifiedDamage < effect.intensityValue) colorHex = "#FF0000"; // Red (Weakened / Debuffed)
+
+                string replacementString = $"<color={colorHex}>{modifiedDamage}</color>";
+                parsedDescription = parsedDescription.Replace("[D]", replacementString);
+            }
+            else if (effect.effectType == EffectType.GainBlock)
+            {
+                int modifiedBlock = DamageCalculator.CalculateModifiedBlock(effect.intensityValue, player);
+
+                string colorHex = "#FFFFFF";
+                if (modifiedBlock < effect.intensityValue) colorHex = "#FF0000";
+
+                string replacementString = $"<color={colorHex}>{modifiedBlock}</color>";
+                parsedDescription = parsedDescription.Replace("[B]", replacementString);
+            }
+        }
+
+        descriptionText.text = parsedDescription;
+    }
+
+    // base class creation call to set variables
     void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
@@ -58,6 +148,7 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         targetingSystem = GetComponentInParent<TargetingSystem2D>();
     }
 
+    // initialize object call to create a specific card into the hand.
     public void Initialize(CardData data, PlayerHand2D manager)
     {
         handManager = manager;
@@ -68,8 +159,24 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         costText.text = data.energyCost.ToString();
         artworkImage.sprite = data.artwork;
         cardTargetType = data.targetType;
-    }
 
+
+        // initial card energy check when the card is spawned into hand
+        if (handManager != null)
+        {
+            DeckManager deckEngine = handManager.GetComponent<DeckManager>();
+            if (deckEngine != null)
+            {
+                UpdateCostColor(deckEngine.GetCurrentEnergy(), deckEngine.maxEnergy);
+            }
+
+        }
+
+        RefreshDynamicDescription();
+
+    }
+    
+    // sets the position of the card based on values put into it, for updating card transforms during most actions.
     public void SetLayoutTarget(Vector2 position, Quaternion rotation, int siblingIndex)
     {
         layoutPosition = position;
@@ -82,16 +189,17 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         }
     }
 
+    // sudo state machine update tick function, sets and changes the states of cards during runtime.
     void Update()
     {
-        // 1. STATE: Actively dragging an UNTARGETED card (or a targeted card below the line)
+        //STATE: Actively dragging an UNTARGETED card (or a targeted card below the line)
         if (isDragging && !isTargetingMode)
         {
             // Do nothing here—the OnDrag function is directly overriding position to match the mouse cursor!
             return;
         }
 
-        // 2. STATE: Actively targeting an enemy (Card sits frozen in the Preview Slot)
+        //STATE: Actively targeting an enemy (Card sits frozen in the Preview Slot)
         if (isTargetingMode)
         {
             Vector2 previewPosition = new Vector2(0f, 100f); // Centers the card right above the hand
@@ -99,7 +207,7 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
             rectTransform.localRotation = Quaternion.Slerp(rectTransform.localRotation, Quaternion.identity, Time.deltaTime * animationSpeed);
             rectTransform.localScale = Vector3.Lerp(rectTransform.localScale, Vector3.one * hoverScale, Time.deltaTime * animationSpeed);
         }
-        // 3. STATE: Mouse is hovering over the card normally
+        //STATE: Mouse is hovering over the card normally
         else if (isHovered)
         {
             Vector2 targetPos = new Vector2(layoutPosition.x, layoutPosition.y + hoverYOffset);
@@ -107,7 +215,7 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
             rectTransform.localRotation = Quaternion.Slerp(rectTransform.localRotation, Quaternion.identity, Time.deltaTime * animationSpeed);
             rectTransform.localScale = Vector3.Lerp(rectTransform.localScale, Vector3.one * hoverScale, Time.deltaTime * animationSpeed);
         }
-        // 4. STATE: Resting passively inside the hand layout arc
+        //STATE: Resting passively inside the hand layout arc
         else
         {
             rectTransform.anchoredPosition = Vector2.Lerp(rectTransform.anchoredPosition, layoutPosition, Time.deltaTime * animationSpeed);
@@ -116,13 +224,15 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         }
     }
 
+    // for when we initialy look over a card
     public void OnPointerEnter(PointerEventData eventData)
     {
         if (isDragging) return;
         isHovered = true;
         rectTransform.SetAsLastSibling();
     }
-
+    
+    // for when we stop looking over a card
     public void OnPointerExit(PointerEventData eventData)
     {
         if (isDragging) return;
@@ -130,7 +240,8 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         ResetHierarchyDepth();
         handManager.RefreshSiblingOrders();
     }
-
+    
+    // used to adjust card index for either unhovering or undragging.
     public void ResetHierarchyDepth()
     {
         if (!isHovered && !isDragging)
@@ -141,8 +252,27 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
 
     // --- DRAG INTERFACE IMPLEMENTATIONS ---
 
+    // event that plays when we click and try dragging a card, will only drag if we have the ability to.
     public void OnBeginDrag(PointerEventData eventData)
     {
+
+        if (!DeckManager.IsPlayerTurn) return;
+
+
+        DeckManager deckEngine = handManager.GetComponent<DeckManager>();
+        if (deckEngine != null)
+        {
+
+            if(myCardData.energyCost > deckEngine.GetCurrentEnergy())
+            {
+                UnityEngine.Debug.LogWarning($"Not enough energy to play {myCardData.Name}! Requires: {myCardData.energyCost}");
+                isDragAllowed = false;
+                return;
+            }
+
+        }
+
+
         isDragging = true;
         isHovered = false;
         rectTransform.SetAsLastSibling(); // Render on top of all other cards
@@ -153,8 +283,13 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         MoveCardToMouse(eventData);
     }
 
+    // actual function that implements and checks whether the card is a targeting or untargeting card type,
+    // and will spawn the arrow system we have to help user target an entity.
     public void OnDrag(PointerEventData eventData)
     {
+        if (!DeckManager.IsPlayerTurn || !isDragAllowed) return;
+
+
         // TARGETED CARD BEHAVIOR: Check thresholds based on MOUSE position, not card position
         if (cardTargetType == CardTargetType.Targeted)
         {
@@ -182,6 +317,24 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
                 isTargetingMode = false;
                 if (targetingSystem != null) targetingSystem.StopTargeting();
             }
+
+            if (isTargetingMode)
+            {
+                CombatEnemy enemyUnderCursor = GetEnemyUnderMouse(eventData);
+
+                if(enemyUnderCursor != null)
+                {
+                    // pass the active enemy to calculate specific vulnerable and whatnot.
+                    RefreshDynamicDescription(enemyUnderCursor);
+
+                }
+                else
+                {
+                    RefreshDynamicDescription(null);
+                }
+            }
+
+
         }
 
         // Keep updating positions normally if we are still holding the card below the line
@@ -191,6 +344,7 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         }
     }
 
+    // moves card to mouse based on the mouse event data put into the function.
     private void MoveCardToMouse(PointerEventData eventData)
     {
         // Safely translates screen pixel mouse coordinates into the correct 3D Camera view plane
@@ -204,15 +358,43 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         }
     }
 
+    // function for ending a dragging sequence, IE we let go of the card, or play it
     public void OnEndDrag(PointerEventData eventData)
     {
+
+        if (!isDragAllowed)
+        {
+            isDragAllowed = true;
+            CancelCardPlay();
+            return;
+        }
+
+
+        // turn check guard
+        if (!DeckManager.IsPlayerTurn)
+        {
+
+            CancelCardPlay();
+            return;
+        }
+        // back end guard
+        DeckManager deckEngine = handManager.GetComponent<DeckManager>();
+        if (deckEngine != null && myCardData.energyCost > deckEngine.GetCurrentEnergy())
+        {
+            UnityEngine.Debug.LogWarning($"Exploit Blocked: Tried to play {myCardData.Name} too fast without enough energy!");
+            CancelCardPlay();
+            return;
+        }
+
+
+
         isDragging = false;
         isHovered = false;
         GetComponent<CanvasGroup>().alpha = 1f; // Force reset visibility flag
 
         if (targetingSystem != null) targetingSystem.StopTargeting();
 
-        // SCENARIO A: Targeted Play Processing
+        // Targeted Play Processing
         if (cardTargetType == CardTargetType.Targeted)
         {
             if (isTargetingMode)
@@ -237,7 +419,7 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
                 handManager.RefreshSiblingOrders();
             }
         }
-        // SCENARIO B: Untargeted Play Processing
+        // Untargeted Play Processing
         else
         {
             if (rectTransform.anchoredPosition.y >= playYThreshold)
@@ -251,10 +433,22 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         }
     }
 
+    private void CancelCardPlay()
+    {
+        isDragging = false;
+        isHovered = false;
+        isTargetingMode = false;
+        if (targetingSystem != null) targetingSystem.StopTargeting();
+        if (handManager != null) handManager.RefreshSiblingOrders();
+    }
+
+
     // --- RAYCAST ENEMY RESOLUTION MATH ---
+    // used to check if we are currently hovering over an enemy with the mouse, checks multiple areas as i was at first unsure of how 
+    // we wanted to do it so i just made both.
     private CombatEnemy GetEnemyUnderMouse(PointerEventData eventData)
     {
-        // 1. Check UI Canvas elements first (if your enemy is a UI Button or Panel)
+        // Check UI Canvas elements first (if enemy is a UI Button or Panel)
         List<RaycastResult> results = new List<RaycastResult>();
         EventSystem.current.RaycastAll(eventData, results);
 
@@ -264,7 +458,7 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
             if (enemyComponent != null) return enemyComponent;
         }
 
-        // 2. Check 2D Game World elements (if your enemy uses a SpriteRenderer + BoxCollider2D)
+        // Check 2D Game World elements
         Vector2 mouseWorldPos = mainCanvas.worldCamera.ScreenToWorldPoint(eventData.position);
         RaycastHit2D hit = Physics2D.Raycast(mouseWorldPos, Vector2.zero);
 
@@ -277,31 +471,146 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     }
 
     // --- CARD RESOLUTION ACTIVATIONS ---
-
+    // plays the card onto the target entity.
     private void PlayCardWithTarget(CombatEnemy target)
     {
-        UnityEngine.Debug.Log($"[PLAY] Active targeted spell: {nameText.text} successfully triggered against target: {target.enemyName}!");
+        UnityEngine.Debug.Log($"[PLAY] Active targeted card: {nameText.text} successfully triggered against target: {target.combatantName}!");
 
-        // This gives you the direct script hook access to execute damage or statuses!
-        target.TakeDamage(6);
+        PlayerStats player = UnityEngine.Object.FindAnyObjectByType<PlayerStats>();
+        BattleManager battleManager = UnityEngine.Object.FindAnyObjectByType<BattleManager>();
+
+
+
+        foreach (CardEffectData effect in myCardData.cardEffectsPool)
+        {
+
+            ResolveAndExecuteEffect(effect, player, target, battleManager);
+
+        }
+
 
         FinalizeCardPlay();
     }
-
+    
+    // plays the card with an untargeting card type.
     private void PlayCardNoTarget()
     {
         UnityEngine.Debug.Log($"[PLAY] Active area effect/buff: {nameText.text} played globally!");
 
         // Handle standalone player state shifts here (e.g., gain Armor)
+        PlayerStats player = UnityEngine.Object.FindAnyObjectByType<PlayerStats>();
+        BattleManager battleManager = UnityEngine.Object.FindAnyObjectByType<BattleManager>();
+
+        // go through every effect on a card and run those steps.
+        foreach (CardEffectData effect in myCardData.cardEffectsPool)
+        {
+            // untargeting cards pass null for direct enemy target slot.
+            ResolveAndExecuteEffect(effect, player, null, battleManager);
+
+        }
+
 
         FinalizeCardPlay();
     }
 
+    // --- THE CENTRAL CORE EFFECT INTERPRETER ENGINE ---
+    // used to resolve what filters and other card scenarios we may run into, based on if the card does aoe, multihits, etc
+    // along with figuring out who the card is being applied to.
+    private void ResolveAndExecuteEffect(CardEffectData effect, PlayerStats player, CombatEnemy directTarget, BattleManager battleManager)
+    {
+        // Compile target list
+        List<CharacterStats> targetList = new List<CharacterStats>();
+        List<CombatEnemy> activeEnemies = battleManager != null ? battleManager.GetLivingEnemies() : new List<CombatEnemy>();
+
+        switch (effect.targetFilter)
+        {
+            case TargetFilter.SingleTarget:
+                if (directTarget != null) targetList.Add(directTarget);
+                break;
+
+            case TargetFilter.AllEnemies:
+                // aoe stuff: Add every single living enemy on the battlefield to the hit list
+                foreach (CombatEnemy enemy in activeEnemies)
+                {
+                    if (enemy != null) targetList.Add(enemy);
+                }
+                break;
+
+            case TargetFilter.Player:
+                if (player != null) targetList.Add(player);
+                break;
+
+            case TargetFilter.RandomEnemy:
+                // Handled uniquely inside the multi-hit loop below to pick a fresh target per bounce
+                break;
+        }
+
+        // process multihit repetition loops
+        for (int hit = 0; hit < effect.repeatCount; hit++)
+        {
+            // If the effect is a randomized target splitter
+            if (effect.targetFilter == TargetFilter.RandomEnemy && activeEnemies.Count > 0)
+            {
+                int randIndex = UnityEngine.Random.Range(0, activeEnemies.Count);
+                CombatEnemy randomSelection = activeEnemies[randIndex];
+                if (randomSelection != null) ProcessSingleEffectActivation(effect, randomSelection, player);
+            }
+            else
+            {
+                // For standard single, player, or full-board AOE operations, execute across compiled list
+                foreach (CharacterStats recipient in targetList)
+                {
+                    if (recipient == null) continue;
+                    ProcessSingleEffectActivation(effect, recipient, player);
+                }
+            }
+        }
+    }
+
+    // Resolves the baseline math arithmetic action directly onto the character instance
+    private void ProcessSingleEffectActivation(CardEffectData effect, CharacterStats recipient, PlayerStats playerRef)
+    {
+        switch (effect.effectType)
+        {
+            case EffectType.DealDamage:
+                // calculate full damage modifications (strength weak etc)
+                int finalDamage = DamageCalculator.CalculateModifiedDamage(effect.intensityValue, playerRef, recipient);
+                recipient.TakeDamage(finalDamage);
+                break;
+
+            case EffectType.GainBlock:
+                // Cast onto whoever holds the recipient reference node
+                int finalBlock = DamageCalculator.CalculateModifiedBlock(effect.intensityValue, recipient);
+                recipient.AddBlock(finalBlock);
+                break;
+
+            case EffectType.DrawCards:
+                DeckManager deck = UnityEngine.Object.FindAnyObjectByType<DeckManager>();
+                if (deck != null) deck.DrawCards(effect.intensityValue);
+                break;
+
+            case EffectType.GainEnergy:
+                DeckManager energyEngine = UnityEngine.Object.FindAnyObjectByType<DeckManager>();
+                if (energyEngine != null) energyEngine.SpendEnergy(-effect.intensityValue);
+                break;
+
+            case EffectType.ApplyStatusEffect:
+                if (effect.statusToApply != null && recipient.StatusEngine != null)
+                {
+                    recipient.StatusEngine.ApplyStatus(effect.statusToApply, effect.intensityValue);
+                }
+                break;
+        }
+    }
+
+    // used to update the hand UI and deck effects to update most UI instances that revolve around playing cards.
     private void FinalizeCardPlay()
     {
         DeckManager deckEngine = handManager.GetComponent<DeckManager>();
         if (deckEngine != null)
         {
+
+            deckEngine.SpendEnergy(myCardData.energyCost);
 
             deckEngine.DiscardCard(myCardData);
         }
@@ -310,7 +619,7 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         Destroy(gameObject);
     }
 
-
+    // from my knowledge I stopped using this, so its deprecated but i don't remember if something else is using it. (whoops)
     private void PlayCard()
     {
         UnityEngine.Debug.Log($"Successfully Played: {nameText.text}!");

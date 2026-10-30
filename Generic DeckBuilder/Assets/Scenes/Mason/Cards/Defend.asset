@@ -13,7 +13,16 @@ MonoBehaviour:
   m_Name: Defend
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   Name: Defend
-  Description: Gain 5 Block
+  Description: Gain [B] Block
   energyCost: 1
   artwork: {fileID: 0}
   cardID: 1
+  targetType: 0
+  cardEffectsPool:
+  - effectType: 1
+    targetFilter: 3
+    intensityValue: 5
+    repeatCount: 1
+    statusToApply: {fileID: 0}
+  attackDamageValue: 0
+  blockValue: 5

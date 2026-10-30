@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Extra implementation for the actual spawning and setup of the cards in the hand of the player during combat.
 public class PlayerHand2D : MonoBehaviour
 {
 
@@ -54,13 +55,13 @@ public class PlayerHand2D : MonoBehaviour
             float t = cardCount > 1 ? (float)i / (cardCount - 1) : 0.5f;
             float normalizedHorizontal = t - 0.5f;
 
-            // 1. Calculate X Position
+            //Calculate X Position
             float xPos = normalizedHorizontal * (cardCount - 1) * currentSpacing;
 
-            // 2. Calculate Y Position using a parabolic curve offset
+            //Calculate Y Position using a parabolic curve offset
             float yPos = (1f - 4f * normalizedHorizontal * normalizedHorizontal) * arcHeight;
 
-            // 3. Calculate Z Rotation (Tilt)
+            //Calculate Z Rotation (Tilt)
             float zRot = -normalizedHorizontal * maxRotationAngle;
 
             // Pass targets downstream to individual card smooth lerp loop engines

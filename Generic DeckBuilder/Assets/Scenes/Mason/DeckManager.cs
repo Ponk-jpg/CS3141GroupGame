@@ -3,20 +3,40 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
 
+// class used to update the main UI of combat for the user, along with maintaining other important variables
 public class DeckManager : MonoBehaviour
 {
+
+    public static Action<bool> OnPlayerTurnStateChanged;
+    public static bool IsPlayerTurn { get; private set; } = true;
+
+    public static Action<int, int> OnEnergyChanged; // broadcasts (current Energy, Max Energy )
+    [Header("Energy Configuration")]
+    public int maxEnergy = 3;
+    private int currentEnergy = 0;
+
     [Header("Deck Sources")]
     [Tooltip("All the cards a player brings into combat.")]
     public List<CardData> masterDeck = new List<CardData>();
 
+    [Header("Hand Settings")]
+    [Tooltip("Max num of cards a player can hold at once.")]
+    public int maxHandSize = 10;
+
+
     // Live runtime trackers
     private List<CardData> drawPile = new List<CardData>();
     private List<CardData> discardPile = new List<CardData>();
+    private List<CardData> exhaustPile = new List<CardData>();
 
     private PlayerHand2D handSystem;
 
     public List<CardData> GetDrawPile() => drawPile;
     public List<CardData> GetDiscardPile() => discardPile;
+    public List<CardData> GetExhaustPile() => exhaustPile;
+    public List<CardData> GetMasterDeck() => masterDeck;
+
+    public int GetCurrentEnergy() => currentEnergy;
 
     void Awake()
     {
@@ -25,31 +45,42 @@ public class DeckManager : MonoBehaviour
 
     void Start()
     {
-        // 1. Initialize combat by adding master deck cards to draw pile
+
+        IsPlayerTurn = true;
+        //Initialize combat by adding master deck cards to draw pile
         drawPile.AddRange(masterDeck);
 
-        // 2. Initial shuffle
+        //Initial shuffle
         ShufflePile(drawPile);
 
-        // 3. Draw an initial starting hand of 5 cards
-        StartNewTurn(5);
     }
 
     // Retain a reference to hand manager to pull current cards out of it
     public void StartNewTurn(int cardsToDraw)
     {
 
-        // 1. Draw a fresh hand of cards
+        IsPlayerTurn = true;
+        OnPlayerTurnStateChanged?.Invoke(true);
+
+        currentEnergy = maxEnergy;
+        OnEnergyChanged?.Invoke(currentEnergy, maxEnergy);
+
+        // Draw a fresh hand of cards
         DrawCards(cardsToDraw);
     }
 
+    // function that happens when we end turn, mainly used to update deck values.
     public void EndCurrentTurn()
     {
 
-        // 1. Gather all remaining cards sitting in the player's visual hand layout
+        IsPlayerTurn = false;
+        OnPlayerTurnStateChanged?.Invoke(false);
+
+
+        //Gather all remaining cards sitting in the player's visual hand layout
         List<CardController> remainingHandCards = handSystem.GetCardsInHand();
 
-        // 2. Loop backwards to safely dump their data profiles into the discard heap
+        //Loop backwards to safely dump their data profiles into the discard heap
         for (int i = remainingHandCards.Count - 1; i >= 0; i--)
         {
             CardController card = remainingHandCards[i];
@@ -70,15 +101,30 @@ public class DeckManager : MonoBehaviour
 
         LogPileCounts();
 
-        // 3. TRIGGER ENEMY TURN HERE
-        // For now, we will simulate a quick 1-second enemy turn before passing it back
-        StartCoroutine(SimulateEnemyTurn());
     }
+
+    public void SpendEnergy(int amount)
+    {
+        currentEnergy -= amount;
+        if (currentEnergy < 0) currentEnergy = 0;
+
+        OnEnergyChanged?.Invoke(currentEnergy, maxEnergy);
+
+    }
+
 
     public void DrawCards(int amount)
     {
         for (int i = 0; i < amount; i++)
         {
+
+            if (handSystem != null && handSystem.GetCardsInHand().Count >= maxHandSize)
+            {
+                UnityEngine.Debug.Log($"[DRAW STOPPED] Hand is completely full ({maxHandSize}/{maxHandSize}). Leaving remaining cards on top of the Draw Pile.");
+                break;
+            }
+
+
             // If the draw pile is empty, try to reshuffle the discard pile back in
             if (drawPile.Count == 0)
             {
@@ -109,6 +155,35 @@ public class DeckManager : MonoBehaviour
         LogPileCounts();
     }
 
+    public void ExhaustCard(CardData cardData)
+    {
+        exhaustPile.Add(cardData);
+        
+    }
+
+    // used for whenever a card the user plays or a enemy attack adds a card to our hand,
+    // hasn't been tested yet but should work as intended.
+    public void GenerateCardMidCombat(CardData specializedCard)
+    {
+        UnityEngine.Debug.Log($"[CARD GENERATION] Outside source attempting to add: {specializedCard.Name}");
+
+        // If an outside source adds a card while your hand is full, it overflows to discard
+        if (handSystem != null && handSystem.GetCardsInHand().Count >= maxHandSize)
+        {
+            UnityEngine.Debug.Log($"[HAND FULL] Outside card {specializedCard.Name} overflowed straight into the Discard Pile.");
+            DiscardCard(specializedCard);
+        }
+        else
+        {
+            if (handSystem != null)
+            {
+                handSystem.AddCardToHand(specializedCard);
+            }
+        }
+
+    }
+
+
     private void ReshuffleDiscardIntoDraw()
     {
         if (discardPile.Count == 0) return;
@@ -136,11 +211,4 @@ public class DeckManager : MonoBehaviour
         UnityEngine.Debug.Log($"[DECK STATUS] Draw Pile: {drawPile.Count} | Discard Pile: {discardPile.Count}");
     }
 
-    private System.Collections.IEnumerator SimulateEnemyTurn()
-    {
-        yield return new WaitForSeconds(1.0f); // Delays execution for 1 second
-
-        // Return control back to the player loop phase
-        StartNewTurn(5);
-    }
 }

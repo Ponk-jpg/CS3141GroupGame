@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine.UI;
 
 
+// UI class used to view the discard, draw, total deck, and exhaust pile decks.
 public class DeckViewerUI : MonoBehaviour
 {
     [Header("UI Visual Elements")]
@@ -34,12 +35,12 @@ public class DeckViewerUI : MonoBehaviour
         {
             GameObject displayCard = Instantiate(cardPrefabTemplate, gridContentParent);
 
-            // 1. STABILIZE SCALE AND ROTATION FOR GRID VIEW
+            //STABILIZE SCALE AND ROTATION FOR GRID VIEW
             RectTransform cardTransform = displayCard.GetComponent<RectTransform>();
             cardTransform.localScale = Vector3.one;       // Reset to 100% normal size
             cardTransform.localRotation = Quaternion.identity; // Remove any layout curves/tilts
 
-            // 2. DISCONNECT HAND BEHAVIORS
+            //DISCONNECT HAND BEHAVIORS
             if (displayCard.TryGetComponent<CardController>(out var controller))
             {
                 controller.Initialize(cardData, null);

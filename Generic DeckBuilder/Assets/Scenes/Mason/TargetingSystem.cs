@@ -2,11 +2,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+// class used to create the arrow effect we use for whenever the player targets an enemy with a card.
 public class TargetingSystem2D : MonoBehaviour
 {
     [Header("References")]
     public GameObject dotPrefab;
-    [Tooltip("How many points/dots make up the arrow chain.")]
+    [Tooltip("How many points make up the arrow chain.")]
     public int dotCount = 15;
 
     [Header("Curve Tuning")]
@@ -32,8 +33,33 @@ public class TargetingSystem2D : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        DeckManager.OnPlayerTurnStateChanged += HandleTurnChanged;
+
+    }
+
+    private void OnDisable()
+    {
+        DeckManager.OnPlayerTurnStateChanged -= HandleTurnChanged;
+    }
+
+    private void HandleTurnChanged(bool playerTurnActive)
+    {
+
+        if(!playerTurnActive && isActive)
+        {
+            StopTargeting();
+        }
+
+    }
+
+
     public void StartTargeting(Vector2 handPosition)
     {
+
+        if (!DeckManager.IsPlayerTurn) return;
+
         isActive = true;
         startPoint = handPosition;
 
@@ -54,13 +80,13 @@ public class TargetingSystem2D : MonoBehaviour
 
     void Update()
     {
-        if (!isActive) return;
+        if (!isActive || !DeckManager.IsPlayerTurn) return;
 
         Vector2 mouseLocalPoint;
 
         Vector2 currentMousePos = Mouse.current.position.ReadValue();
 
-        // Convert the current screen mouse position accurately into UI Canvas space
+        // Convert the current screen mouse position into UI Canvas space
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
             transform as RectTransform,
             currentMousePos,
@@ -68,7 +94,7 @@ public class TargetingSystem2D : MonoBehaviour
             out mouseLocalPoint
         );
 
-        // Calculate a control point to generate a Slay the Spire dynamic curve arc
+        // Calculate a control point to generate a dynamic curve arc
         Vector2 controlPoint = Vector2.Lerp(startPoint, mouseLocalPoint, 0.5f);
         controlPoint.y += curveOffsetPower; // Push the curve upward in the middle
         controlPoint.x -= (mouseLocalPoint.x - startPoint.x) * 0.2f; // Slight horizontal bow
@@ -78,6 +104,7 @@ public class TargetingSystem2D : MonoBehaviour
             float t = (float)i / (dotCount - 1);
 
             // Quadratic Bezier Curve formula: B(t) = (1-t)^2 * P0 + 2(1-t)t * P1 + t^2 * P2
+            // this is mainly here for me so i dont forget it lol.
             Vector2 dotPos = Mathf.Pow(1 - t, 2) * startPoint +
                              2 * (1 - t) * t * controlPoint +
                              Mathf.Pow(t, 2) * mouseLocalPoint;
@@ -85,6 +112,7 @@ public class TargetingSystem2D : MonoBehaviour
             spawnedDots[i].anchoredPosition = dotPos;
 
             //Make the dots progressively scale up larger near the tip arrow cursor
+            // change so we can update more easily.
             spawnedDots[i].localScale = Vector3.one * Mathf.Lerp(0.5f, 1.3f, t);
 
             // Rotate the dots to face the next dot in the chain path
