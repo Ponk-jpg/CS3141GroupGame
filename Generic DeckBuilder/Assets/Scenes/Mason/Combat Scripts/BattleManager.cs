@@ -59,26 +59,16 @@ public class BattleManager : MonoBehaviour
     {
 
         // Tell DeckManager to halt player turn sequences safely 
-        PlayerHand2D hand = UnityEngine.Object.FindAnyObjectByType<PlayerHand2D>();
-        if (hand != null)
+        DeckManager deck = UnityEngine.Object.FindAnyObjectByType<DeckManager>();
+
+        if(deck != null)
         {
-            var activeCards = new List<CardController>(hand.GetCardsInHand());
-            for(int i = activeCards.Count - 1; i >= 0; i--)
-            {
 
-                if (activeCards[i] != null) Destroy(activeCards[i].gameObject);
-
-            }
+            deck.EndCurrentTurn();
 
         }
 
-
-        //DeckManager deckEngine = UnityEngine.Object.FindAnyObjectByType<DeckManager>();
-        //if (deckEngine != null)
-        //{
-        //    deckEngine.EndCurrentTurn(); // Wipes hand cards out of the active battlefield
-        //}
-
+        
         // Trigger the rewards popup, should change this to not be a static value between 15 and 30 gold.
         if (rewardManager != null)
         {

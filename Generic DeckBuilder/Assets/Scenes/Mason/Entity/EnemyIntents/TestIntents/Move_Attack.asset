@@ -14,7 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMoveData
   moveName: Attack
   intentType: 0
-  intentIcon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  intentIcon: {fileID: 8442774558652979393, guid: 58f627b3782d1df41a3d6565aa40803d, type: 3}
   baseValue: 6
   hitCount: 1
   statusEffectToApply: {fileID: 0}
+  cardToInjectTemplate: {fileID: 0}
+  targetInjectionDestination: 2
+  cardsToInjectCount: 1

@@ -7,6 +7,8 @@ using UnityEngine;
 public class DeckManager : MonoBehaviour
 {
 
+    public static Action<int> OnExhaustSelectionStateChanged;
+
     public static Action<bool> OnPlayerTurnStateChanged;
     public static bool IsPlayerTurn { get; private set; } = true;
 
@@ -31,6 +33,17 @@ public class DeckManager : MonoBehaviour
 
     private PlayerHand2D handSystem;
 
+    public static bool IsInExhaustSelectionMode { get; private set; } = false;
+    private CardEffectData activeExhaustEffectConfig;
+    private CardController sourceExhaustCard;
+    private CharacterStats capturedEnemyTarget;
+    private PlayerStats capturedPlayerRef;
+
+    // Counters to handle multi-card constraints tracking
+    private int currentExhaustedCount = 0;
+    private int requiredExhaustCount = 0;
+
+
     public List<CardData> GetDrawPile() => drawPile;
     public List<CardData> GetDiscardPile() => discardPile;
     public List<CardData> GetExhaustPile() => exhaustPile;
@@ -47,11 +60,6 @@ public class DeckManager : MonoBehaviour
     {
 
         IsPlayerTurn = true;
-        //Initialize combat by adding master deck cards to draw pile
-        drawPile.AddRange(masterDeck);
-
-        //Initial shuffle
-        ShufflePile(drawPile);
 
     }
 
@@ -68,6 +76,29 @@ public class DeckManager : MonoBehaviour
         // Draw a fresh hand of cards
         DrawCards(cardsToDraw);
     }
+
+    public void ResetDeckForNewEncounter()
+    {
+        drawPile.Clear();
+        discardPile.Clear();
+        exhaustPile.Clear();
+
+        if (masterDeck == null || masterDeck.Count == 0)
+        {
+
+            UnityEngine.Debug.LogError("Deck manager: Master Deck is empty");
+            return;
+
+        }
+
+        drawPile.AddRange(masterDeck);
+
+        ShufflePile(drawPile);
+
+        UnityEngine.Debug.Log($"[DECK RESET] successfully initialized {drawPile.Count} total cards");
+
+    }
+
 
     // function that happens when we end turn, mainly used to update deck values.
     public void EndCurrentTurn()
@@ -180,6 +211,100 @@ public class DeckManager : MonoBehaviour
                 handSystem.AddCardToHand(specializedCard);
             }
         }
+
+    }
+
+    // Call this to turn on hand selection mode
+    public void EnterInHandExhaustMode(CardEffectData effect, CardController sourceCard, PlayerStats player, CharacterStats enemyTarget)
+    {
+        IsInExhaustSelectionMode = true;
+        activeExhaustEffectConfig = effect;
+        sourceExhaustCard = sourceCard;
+        capturedPlayerRef = player;
+        capturedEnemyTarget = enemyTarget;
+
+        currentExhaustedCount = 0;
+        requiredExhaustCount = effect.cardsToExhaustCount;
+
+        UnityEngine.Debug.Log("[HAND SELECTION] Entered Exhaust Selection Mode. Click a card in your hand to burn it!");
+
+        // Trigger an event here if you want a global UI text label to tell the player "Select a Card to Exhaust"
+        OnExhaustSelectionStateChanged?.Invoke(requiredExhaustCount - currentExhaustedCount);
+
+        ToggleEndTurnButtonAvailability(false);
+
+    }
+
+    // Call this from a clicked card to execute the payoff payload
+    public void ProcessInHandCardSelection(CardController selectedHandCard)
+    {
+        if (!IsInExhaustSelectionMode || selectedHandCard == sourceExhaustCard) return;
+
+
+        PlayerHand2D handSystem = UnityEngine.Object.FindAnyObjectByType<PlayerHand2D>();
+        if (handSystem == null || activeExhaustEffectConfig == null) return;
+
+        UnityEngine.Debug.Log($"[EXHAUST SELECTION] Player clicked directly on {selectedHandCard.myCardData.Name} in hand!");
+
+        // Burn the selected card into the backend exhaust tracking lists
+        ExhaustCard(selectedHandCard.myCardData);
+
+        //Remove it visually from the hand tracks and wipe its scene object
+        handSystem.RemoveCardFromHand(selectedHandCard);
+        Destroy(selectedHandCard.gameObject);
+
+        currentExhaustedCount++;
+
+        //Resolve payoffs using the exact payload wrapper function we set up inside CardController
+        if (sourceExhaustCard != null)
+        {
+            // We pass an explicit list containing exactly 1 card to reuse your scalable payload math
+            List<CardController> wrapperList = new List<CardController>() { selectedHandCard };
+            sourceExhaustCard.ExecuteExhaustionPayload(wrapperList, activeExhaustEffectConfig, capturedPlayerRef, capturedEnemyTarget, this, handSystem);
+        }
+
+        int remainingBurnableCards = handSystem.GetCardsInHand().Count;
+        if (sourceExhaustCard != null && handSystem.GetCardsInHand().Contains(sourceExhaustCard))
+        {
+            remainingBurnableCards--;
+        }
+
+
+        if (currentExhaustedCount >= requiredExhaustCount || remainingBurnableCards <= 0)
+        {
+
+            IsInExhaustSelectionMode = false;
+
+            OnExhaustSelectionStateChanged?.Invoke(0);
+
+            ToggleEndTurnButtonAvailability(true);
+
+            activeExhaustEffectConfig = null;
+            sourceExhaustCard = null;
+            capturedPlayerRef = null;
+            capturedEnemyTarget = null;
+
+        }
+        else
+        {
+
+            int remainingNeeded = requiredExhaustCount - currentExhaustedCount;
+            OnExhaustSelectionStateChanged?.Invoke(remainingNeeded);
+        }
+    }
+
+    private void ToggleEndTurnButtonAvailability(bool isAllowedToClick)
+    {
+
+        TurnButtonController EndTurnBtn = UnityEngine.Object.FindAnyObjectByType<TurnButtonController>();
+        if (EndTurnBtn != null)
+        {
+
+            UnityEngine.UI.Button rawButton = EndTurnBtn.GetComponent<UnityEngine.UI.Button>();
+            if (rawButton != null) rawButton.interactable = isAllowedToClick;
+
+        }
+        
 
     }
 

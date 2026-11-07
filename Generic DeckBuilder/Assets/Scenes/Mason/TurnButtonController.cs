@@ -40,6 +40,13 @@ public class TurnButtonController : MonoBehaviour
     void OnEndTurnPressed()
     {
 
+        if (DeckManager.IsInExhaustSelectionMode)
+        {
+
+
+            return;
+        }
+
         BattleStateManager stateManager = UnityEngine.Object.FindAnyObjectByType<BattleStateManager>();
         if (stateManager != null)
         {

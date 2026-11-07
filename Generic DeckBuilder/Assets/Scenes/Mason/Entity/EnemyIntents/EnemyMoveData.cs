@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 public enum IntentType { Attack, Defend, Buff, Debuff}
-
+public enum EnemyCardGenerationPile { Hand, DrawPile, DiscardPile}
 
 // base scriptable object to create different intent types for our enemies, we create one for each unique type of attack and any attack with different values.
 [CreateAssetMenu(fileName = "EnemyMoveData", menuName = "Scriptable Objects/EnemyMoveData")]
@@ -21,6 +21,12 @@ public class EnemyMoveData : ScriptableObject
     [Header("Status Effect Action Settings")]
     [Tooltip("Only assing this if the move type is a buff or debuff")]
     public StatusEffectData statusEffectToApply;
+
+    [Header("Generative Deck Injections")]
+    [Tooltip("Only assign this if your intent type is set to Buff or Debuff, and you want to stuff a card into the player's deck")]
+    public CardData cardToInjectTemplate;
+    public EnemyCardGenerationPile targetInjectionDestination = EnemyCardGenerationPile.DiscardPile;
+    public int cardsToInjectCount = 1;
 
 
 }

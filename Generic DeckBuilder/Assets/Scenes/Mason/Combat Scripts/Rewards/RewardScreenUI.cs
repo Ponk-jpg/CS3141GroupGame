@@ -59,6 +59,17 @@ public class RewardScreenUI : MonoBehaviour
     {
         gameObject.SetActive(false);
         UnityEngine.Debug.Log("[MAP TRANSITION] Closed rewards layout. Loading node maps systems back up...");
-        // go to next encounter or something similar here.
+
+        MapActGenerator mapEngine = UnityEngine.Object.FindAnyObjectByType<MapActGenerator>();
+        if (mapEngine != null)
+        {
+
+            mapEngine.AdvanceToNextFloor();
+
+        }
+        else
+        {
+            UnityEngine.Debug.LogError("[MAP NAVIGATION ERROR] could not find a MapActGenerator Object script");
+        }
     }
 }

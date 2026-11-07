@@ -32,11 +32,22 @@ public class BattleStateManager : MonoBehaviour
         UnityEngine.Debug.Log("================ COMBAT INITIALIZED ================");
 
         //Initialize encounter selection and spawn the physical enemies
+
+        if (deckManager != null)
+        {
+            deckManager.ResetDeckForNewEncounter();
+        }
+        else
+        {
+            UnityEngine.Debug.LogError("[BATTLE STATE MANAGER] deckmanager ref is missing :(");
+        }
+
         if (battleManager != null)
         {
             // Pull difficulty setting from the BattleManager inspector setup
             battleManager.LoadRandomEncounterFromPool(battleManager.testDifficultySetting);
         }
+
 
         //Delay slightly before handing control to the player
         StartCoroutine(TransitionToState(BattleState.PlayerTurn));
@@ -103,6 +114,8 @@ public class BattleStateManager : MonoBehaviour
 
         PlayerStats playerTarget = UnityEngine.Object.FindAnyObjectByType<PlayerStats>();
 
+        InjectedCardPopupUI flyEngineUI = UnityEngine.Object.FindAnyObjectByType<InjectedCardPopupUI>();
+
         // clear block for enemies at the start of their turn 
         foreach(CombatEnemy enemy in enemyTeam)
         {
@@ -125,7 +138,24 @@ public class BattleStateManager : MonoBehaviour
             {
                 // do nothing lmao
             }
-            yield return new WaitForSeconds(0.8f);
+
+            EnemyMoveData currentMove = enemy.GetComponent<EnemyAI>().GetCurrentlyActiveMove();
+            float baseWaitTime = 0.4f;
+
+            if (currentMove != null && currentMove.intentType == IntentType.Attack)
+            {
+
+                baseWaitTime += (currentMove.hitCount * 0.22f);
+
+            }
+
+            if (flyEngineUI != null)
+            {
+                // forces to wait until the current enemy is done animating and doing its stuff.
+                yield return new WaitUntil(() => !flyEngineUI.IsAnimating);
+            }
+
+            yield return new WaitForSeconds(baseWaitTime);
         }
         // decrement status effects if need be.
         foreach(CombatEnemy enemy in enemyTeam)

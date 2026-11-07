@@ -14,7 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMoveData
   moveName: ApplyFrail
   intentType: 3
-  intentIcon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  intentIcon: {fileID: -677644215914447802, guid: 20358af1edc749a4c843b88c70fc77d1, type: 3}
   baseValue: 20
   hitCount: 1
   statusEffectToApply: {fileID: 11400000, guid: ec2d125074edd104e83c460ec9e845dd, type: 2}
+  cardToInjectTemplate: {fileID: 0}
+  targetInjectionDestination: 2
+  cardsToInjectCount: 1
