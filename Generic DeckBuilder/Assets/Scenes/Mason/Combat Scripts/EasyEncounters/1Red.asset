@@ -12,5 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4164c4d134d86114393c44dd6211f058, type: 3}
   m_Name: 1Red
   m_EditorClassIdentifier: Assembly-CSharp::EnemyEncounterData
-  encounterName: 
-  enemiesInEncounter: []
+  encounterName: Red
+  enemiesInEncounter:
+  - enemyPrefab: {fileID: 7976899863277087231, guid: 64fa96bf8a8f38443909d3c1aa578fcd, type: 3}
+    reservedMinionSlotsForThisEnemy: 0

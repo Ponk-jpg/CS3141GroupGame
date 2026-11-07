@@ -12,11 +12,44 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67106dc61712230449e545f131bb89e6, type: 3}
   m_Name: CardData
   m_EditorClassIdentifier: Assembly-CSharp::CardData
-  Name: 
-  Description: 
-  energyCost: 0
+  Name: Fight Me
+  Description: Deal [D] damage 2 times. Gain 3 Strength. Give the enemy 1 strength.
+  energyCost: 2
   artwork: {fileID: 0}
   cardID: 0
-  targetType: 0
-  cardEffectsPool: []
+  targetType: 1
+  cardEffectsPool:
+  - effectType: 0
+    targetFilter: 0
+    intensityValue: 5
+    repeatCount: 2
+    statusToApply: {fileID: 0}
+    selectionMode: 0
+    cardsToExhaustCount: 0
+    cardToGenerateTemplate: {fileID: 0}
+    targetDestination: 0
+    generationAmount: 0
+    followUpEffectsPool: []
+  - effectType: 4
+    targetFilter: 0
+    intensityValue: 1
+    repeatCount: 1
+    statusToApply: {fileID: 11400000, guid: 7a9a71b22fd871a45bd21031c9087c43, type: 2}
+    selectionMode: 0
+    cardsToExhaustCount: 0
+    cardToGenerateTemplate: {fileID: 0}
+    targetDestination: 0
+    generationAmount: 0
+    followUpEffectsPool: []
+  - effectType: 4
+    targetFilter: 3
+    intensityValue: 3
+    repeatCount: 1
+    statusToApply: {fileID: 11400000, guid: 7a9a71b22fd871a45bd21031c9087c43, type: 2}
+    selectionMode: 0
+    cardsToExhaustCount: 0
+    cardToGenerateTemplate: {fileID: 0}
+    targetDestination: 0
+    generationAmount: 0
+    followUpEffectsPool: []
   isExhaustOnPlay: 0

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   Name: Vulnerable
   Description: Deal 2 Vulnerable
-  energyCost: 2
+  energyCost: 1
   artwork: {fileID: 0}
   cardID: 2
   targetType: 1
@@ -24,5 +24,10 @@ MonoBehaviour:
     intensityValue: 2
     repeatCount: 1
     statusToApply: {fileID: 11400000, guid: eeb046ecd3bf69641a1f45c997035f95, type: 2}
-  attackDamageValue: 0
-  blockValue: 0
+    selectionMode: 0
+    cardsToExhaustCount: 1
+    cardToGenerateTemplate: {fileID: 0}
+    targetDestination: 0
+    generationAmount: 1
+    followUpEffectsPool: []
+  isExhaustOnPlay: 0

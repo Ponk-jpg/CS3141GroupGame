@@ -13,7 +13,18 @@ MonoBehaviour:
   m_Name: MasterDatabase
   m_EditorClassIdentifier: Assembly-CSharp::EncounterDatabase
   easyPool:
-  - {fileID: 11400000, guid: 5b17901fb2b6c714bbb3495aa1dd1bf5, type: 2}
-  - {fileID: 11400000, guid: effa7ff0bfe242d4aa4b44f83a06ca34, type: 2}
-  hardPool: []
+  - {fileID: 11400000, guid: 9dd25adf89182cb459998aac8452f500, type: 2}
+  - {fileID: 11400000, guid: aef80f8c901bb924db8e3b6d991e78e1, type: 2}
+  - {fileID: 11400000, guid: be8b21ea6dbeaf549ab7b20a35cb2307, type: 2}
+  - {fileID: 11400000, guid: bf1487f3b17780641a094fa3a4fef28b, type: 2}
+  - {fileID: 11400000, guid: d21597006005e804b8be96402f664f53, type: 2}
+  - {fileID: 11400000, guid: fca88e8a5b4b2934ab464910eda202c7, type: 2}
+  - {fileID: 11400000, guid: 90eab260054ca4947acff2e715abb767, type: 2}
+  hardPool:
+  - {fileID: 11400000, guid: 82c363028e28342498610e565cb914c7, type: 2}
+  - {fileID: 11400000, guid: 0584afa8ab128b04eb4aa45d836dfc32, type: 2}
+  - {fileID: 11400000, guid: bd2413261e777464d813f0f7df754313, type: 2}
+  - {fileID: 11400000, guid: 5bb5298644a2dc948931b2f006a9b038, type: 2}
+  - {fileID: 11400000, guid: 3472d35f38de34f43aef6a327dfd7666, type: 2}
+  - {fileID: 11400000, guid: c7d115ebdbca8514daee7918db9c089d, type: 2}
   bossPool: []

@@ -12,11 +12,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67106dc61712230449e545f131bb89e6, type: 3}
   m_Name: StrengthGiver
   m_EditorClassIdentifier: Assembly-CSharp::CardData
-  Name: 
-  Description: 
-  energyCost: 0
+  Name: Sacrifice
+  Description: Exhaust All cards in your hand. For each card exhausted, gain 3 strength.
+    Exhaust.
+  energyCost: 2
   artwork: {fileID: 0}
   cardID: 0
   targetType: 0
-  cardEffectsPool: []
-  isExhaustOnPlay: 0
+  cardEffectsPool:
+  - effectType: 5
+    targetFilter: 3
+    intensityValue: 3
+    repeatCount: 1
+    statusToApply: {fileID: 0}
+    selectionMode: 0
+    cardsToExhaustCount: 10
+    cardToGenerateTemplate: {fileID: 0}
+    targetDestination: 0
+    generationAmount: 0
+    followUpEffectsPool:
+    - effectType: 4
+      targetFilter: 3
+      intensityValue: 3
+      repeatCount: 1
+      statusToApply: {fileID: 11400000, guid: 7a9a71b22fd871a45bd21031c9087c43, type: 2}
+  isExhaustOnPlay: 1
