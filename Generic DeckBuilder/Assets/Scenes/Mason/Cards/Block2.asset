@@ -12,11 +12,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67106dc61712230449e545f131bb89e6, type: 3}
   m_Name: Block2
   m_EditorClassIdentifier: Assembly-CSharp::CardData
-  Name: 
-  Description: 
-  energyCost: 0
+  Name: Deflect
+  Description: Gain [B] block. Draw 2 cards.
+  energyCost: 1
   artwork: {fileID: 0}
   cardID: 0
   targetType: 0
-  cardEffectsPool: []
+  cardEffectsPool:
+  - effectType: 1
+    targetFilter: 3
+    intensityValue: 8
+    repeatCount: 1
+    statusToApply: {fileID: 0}
+    selectionMode: 0
+    cardsToExhaustCount: 0
+    cardToGenerateTemplate: {fileID: 0}
+    targetDestination: 0
+    generationAmount: 0
+    followUpEffectsPool: []
+  - effectType: 2
+    targetFilter: 3
+    intensityValue: 2
+    repeatCount: 1
+    statusToApply: {fileID: 0}
+    selectionMode: 0
+    cardsToExhaustCount: 0
+    cardToGenerateTemplate: {fileID: 0}
+    targetDestination: 0
+    generationAmount: 0
+    followUpEffectsPool: []
   isExhaustOnPlay: 0

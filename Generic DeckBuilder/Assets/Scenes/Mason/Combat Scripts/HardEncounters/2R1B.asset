@@ -12,5 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4164c4d134d86114393c44dd6211f058, type: 3}
   m_Name: 2R1B
   m_EditorClassIdentifier: Assembly-CSharp::EnemyEncounterData
-  encounterName: 
-  enemiesInEncounter: []
+  encounterName: 2R1B
+  enemiesInEncounter:
+  - enemyPrefab: {fileID: 7976899863277087231, guid: 1956f069de5fb5749848b8b6f40412cc, type: 3}
+    reservedMinionSlotsForThisEnemy: 0
+  - enemyPrefab: {fileID: 7976899863277087231, guid: 64fa96bf8a8f38443909d3c1aa578fcd, type: 3}
+    reservedMinionSlotsForThisEnemy: 0
+  - enemyPrefab: {fileID: 7976899863277087231, guid: 56f47c830d27eb548b06d20c85f358a5, type: 3}
+    reservedMinionSlotsForThisEnemy: 0

@@ -12,5 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4164c4d134d86114393c44dd6211f058, type: 3}
   m_Name: 3G1B
   m_EditorClassIdentifier: Assembly-CSharp::EnemyEncounterData
-  encounterName: 
-  enemiesInEncounter: []
+  encounterName: 3G1B
+  enemiesInEncounter:
+  - enemyPrefab: {fileID: 7976899863277087231, guid: 4177a242e4754b149b6307c43c775b37, type: 3}
+    reservedMinionSlotsForThisEnemy: 0
+  - enemyPrefab: {fileID: 7976899863277087231, guid: a7a5dea0770a881439b3d4c88d7473ec, type: 3}
+    reservedMinionSlotsForThisEnemy: 0
+  - enemyPrefab: {fileID: 7976899863277087231, guid: 4177a242e4754b149b6307c43c775b37, type: 3}
+    reservedMinionSlotsForThisEnemy: 0
+  - enemyPrefab: {fileID: 7976899863277087231, guid: 56f47c830d27eb548b06d20c85f358a5, type: 3}
+    reservedMinionSlotsForThisEnemy: 0
