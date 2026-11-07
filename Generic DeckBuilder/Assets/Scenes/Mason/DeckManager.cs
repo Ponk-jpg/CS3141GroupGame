@@ -143,6 +143,22 @@ public class DeckManager : MonoBehaviour
 
     }
 
+    public void GainEnergy(int amountToRegain)
+    {
+
+        if (amountToRegain <= 0) 
+        {
+            return;
+        }
+
+        int priorEnergy = currentEnergy;
+        currentEnergy += amountToRegain;
+
+        OnEnergyChanged?.Invoke(currentEnergy, maxEnergy);
+
+
+    }
+
 
     public void DrawCards(int amount)
     {

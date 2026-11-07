@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 157d7ff03dc19b549b4bec91caa460a9, type: 3}
   m_Name: Data_TestEnemy
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
-  enemyName: Test
-  artwork: {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}
-  maxHealth: 30
-  visualSize: 1
+  enemyName: Green Slime
+  artwork: {fileID: 5830694933855508796, guid: 95191dbc0f68ef242a8926ba779e6ed4, type: 3}
+  maxHealth: 18
+  visualSize: 0

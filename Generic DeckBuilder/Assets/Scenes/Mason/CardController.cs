@@ -629,7 +629,7 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
 
             case EffectType.GainEnergy:
                 DeckManager energyEngine = UnityEngine.Object.FindAnyObjectByType<DeckManager>();
-                if (energyEngine != null) energyEngine.SpendEnergy(-effect.intensityValue);
+                if (energyEngine != null) energyEngine.GainEnergy(effect.intensityValue);
                 break;
 
             case EffectType.ApplyStatusEffect:

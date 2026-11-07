@@ -26,7 +26,6 @@ public class InjectedCardPopupUI : MonoBehaviour
 
 
 
-    //TRACKER REWORK: Explicitly retain the active GameObjects to clean them on overwrite frames
     private List<GameObject> activeSpawnedCardObjects = new List<GameObject>();
 
     private void OnEnable()
@@ -63,7 +62,7 @@ public class InjectedCardPopupUI : MonoBehaviour
         {
             GameObject cardCloneObj = Instantiate(singleCardVisualPrefabTemplate, transform);
 
-            // Register it inside our tracking list so we can destroy it if another enemy interrupts!
+            // Register it inside our tracking list so we can destroy it if another enemy interrupts
             activeSpawnedCardObjects.Add(cardCloneObj);
 
             RectTransform cardCloneRect = cardCloneObj.GetComponent<RectTransform>();
@@ -142,7 +141,7 @@ public class InjectedCardPopupUI : MonoBehaviour
 
     }
 
-    // NEW SAFETY METHOD: Safely stops operations and vaporizes every existing visual clone in the scene hierarchy
+    // stops operations and vaporizes every existing visual clone in the scene hierarchy
     private void ClearActiveVisuals()
     {
         StopAllCoroutines();

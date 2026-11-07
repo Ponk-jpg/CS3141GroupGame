@@ -919,7 +919,7 @@ GameObject:
   - component: {fileID: 1011099431228382921}
   - component: {fileID: 4426987111509012746}
   m_Layer: 0
-  m_Name: Template_Enemy_Prefab
+  m_Name: GreenVar2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1036,16 +1036,17 @@ MonoBehaviour:
   turnPatternLoop:
   - turnLabel: Attack
     actionsOnThisTurn:
-    - {fileID: 11400000, guid: f577017e45f9043469553d177c784552, type: 2}
-  - turnLabel: Status
+    - {fileID: 11400000, guid: 2387071d0b9dca543b0c012ae4fd09ff, type: 2}
+  - turnLabel: Slime
     actionsOnThisTurn:
-    - {fileID: 11400000, guid: 9156921bc3a3bf642940084f6265a93a, type: 2}
-    - {fileID: 11400000, guid: db9fd42770b245c48a9d144ad8d1347a, type: 2}
-    - {fileID: 11400000, guid: f577017e45f9043469553d177c784552, type: 2}
-    - {fileID: 11400000, guid: 28d763374020e0040bf7380d84d38dee, type: 2}
-  - turnLabel: Multihit
+    - {fileID: 11400000, guid: 7e836ccaf52167648945e1b0cce33992, type: 2}
+  - turnLabel: Attack2
     actionsOnThisTurn:
-    - {fileID: 11400000, guid: dfa059b52295dc1439283c3f118863f7, type: 2}
+    - {fileID: 11400000, guid: 2387071d0b9dca543b0c012ae4fd09ff, type: 2}
+  - turnLabel: Slime
+    actionsOnThisTurn:
+    - {fileID: 11400000, guid: 59481af7885d41242a260290aa749a67, type: 2}
+    - {fileID: 11400000, guid: 7e836ccaf52167648945e1b0cce33992, type: 2}
   intentUI: {fileID: 1367552079881056549}
 --- !u!114 &4426987111509012746
 MonoBehaviour:
