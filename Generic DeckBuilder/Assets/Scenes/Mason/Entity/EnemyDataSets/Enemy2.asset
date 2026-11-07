@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 157d7ff03dc19b549b4bec91caa460a9, type: 3}
+  m_Name: Enemy2
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyData
+  enemyName: Red Slime
+  artwork: {fileID: 7723652632321733531, guid: 1b58e1b60454bb644a7253e188fe2a85, type: 3}
+  maxHealth: 24
+  visualSize: 0

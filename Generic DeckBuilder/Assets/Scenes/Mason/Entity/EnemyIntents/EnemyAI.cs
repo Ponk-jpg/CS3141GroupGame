@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
@@ -7,6 +9,9 @@ using UnityEngine;
 [RequireComponent(typeof(CombatEnemy))]
 public class EnemyAI : MonoBehaviour
 {
+    public static Action<CardData, EnemyCardGenerationPile, int> OnEnemyCardInjectedAlert;
+
+
     // A clean sub-structure allowing an inspector index row to contain multiple elements
     [System.Serializable]
     public class TurnActionBundle
@@ -28,6 +33,9 @@ public class EnemyAI : MonoBehaviour
     // Changing our tracking node from a single asset structure to an active operations list
     private List<EnemyMoveData> currentlySelectedMoves = new List<EnemyMoveData>();
     private int currentPatternIndex = 0;
+
+    public EnemyMoveData GetCurrentlyActiveMove() { return currentlySelectedMoves[0]; }
+
 
     void Awake()
     {
@@ -83,6 +91,10 @@ public class EnemyAI : MonoBehaviour
 
         UnityEngine.Debug.Log($"[ACTION EXECUTION] {myEnemyComponent.combatantName} executing sequence bundle for turn index {currentPatternIndex}!");
 
+        DeckManager deckEngine = UnityEngine.Object.FindAnyObjectByType<DeckManager>();
+
+        TransformJuice movementJuice = GetComponent<TransformJuice>();
+
         // Execute every move in the bundle sequentially from left-to-right
         foreach (EnemyMoveData move in currentlySelectedMoves)
         {
@@ -92,11 +104,9 @@ public class EnemyAI : MonoBehaviour
             switch (move.intentType)
             {
                 case IntentType.Attack:
-                    for (int i = 0; i < move.hitCount; i++)
-                    {
-                        int finalDamage = DamageCalculator.CalculateModifiedDamage(move.baseValue, myEnemyComponent, playerTarget);
-                        playerTarget.TakeDamage(finalDamage);
-                    }
+
+                        
+                        StartCoroutine(ExecuteMultiHitLungeSequence(move.hitCount, move.baseValue, playerTarget, movementJuice));
                     break;
 
                 case IntentType.Defend:
@@ -108,17 +118,28 @@ public class EnemyAI : MonoBehaviour
                 case IntentType.Buff:
                     if (move.statusEffectToApply != null && myEnemyComponent.StatusEngine != null)
                     {
+                        if (movementJuice != null) movementJuice.TriggerLungeAnimation();
                         myEnemyComponent.StatusEngine.ApplyStatus(move.statusEffectToApply, move.baseValue);
-                        UnityEngine.Debug.Log($"[AI BUFF] {myEnemyComponent.combatantName} successfully buffed itself with {move.baseValue} stacks of {move.statusEffectToApply.effectName}");
                     }
                     break;
 
                 case IntentType.Debuff:
+
+                    if (movementJuice != null) movementJuice.TriggerLungeAnimation();
+
                     if (move.statusEffectToApply != null && playerTarget.StatusEngine != null)
                     {
                         playerTarget.StatusEngine.ApplyStatus(move.statusEffectToApply, move.baseValue);
                         UnityEngine.Debug.Log($"[AI DEBUFF] {myEnemyComponent.combatantName} successfully inflicted {move.baseValue} stacks of {move.statusEffectToApply.effectName} onto the player");
                     }
+
+                    if (move.cardToInjectTemplate != null && deckEngine != null)
+                    {
+
+                        ExecuteEnemyCardInjectionPayload(move.cardToInjectTemplate, move.targetInjectionDestination, move.cardsToInjectCount, deckEngine);
+
+                    }
+
                     break;
             }
         }
@@ -127,6 +148,67 @@ public class EnemyAI : MonoBehaviour
 
         // Advance turn counter index
         IncrementPatternLoop();
+    }
+
+    // signify sending a card to the player's decks, and add it based on the requirements.
+    private void ExecuteEnemyCardInjectionPayload(CardData cardTemplate, EnemyCardGenerationPile destination, int quantity, DeckManager deck)
+    {
+        if (cardTemplate != null)
+        {
+
+            OnEnemyCardInjectedAlert?.Invoke(cardTemplate,destination, quantity);
+            
+        }
+
+
+        for (int i = 0; i < quantity; i++)
+        {
+            switch (destination)
+            {
+                case EnemyCardGenerationPile.Hand:
+                    // Leverages active mid-combat generation limits
+                    deck.GenerateCardMidCombat(cardTemplate);
+                    UnityEngine.Debug.Log($"[ENEMY INJECTION] Spawned {cardTemplate.Name} straight into the player's Hand.");
+                    break;
+
+                case EnemyCardGenerationPile.DrawPile:
+                    // We randomly set into draw pile
+                    List<CardData> playerDrawPile = deck.GetDrawPile();
+                    int randomInsertIndex = UnityEngine.Random.Range(0, playerDrawPile.Count + 1);
+
+                    playerDrawPile.Insert(randomInsertIndex, cardTemplate);
+                    UnityEngine.Debug.Log($"[ENEMY INJECTION] Randomly shuffled {cardTemplate.Name} into the player's Draw Pile at index {randomInsertIndex}.");
+                    break;
+
+                case EnemyCardGenerationPile.DiscardPile:
+                    deck.GetDiscardPile().Add(cardTemplate);
+                    UnityEngine.Debug.Log($"[ENEMY INJECTION] Slid {cardTemplate.Name} directly into the player's Discard Pile.");
+                    break;
+            }
+        }
+    }
+
+    private IEnumerator ExecuteMultiHitLungeSequence(int totalHits, int baseDamagePerHit, PlayerStats target, TransformJuice movementJuice)
+    {
+        for (int i = 0; i < totalHits; i++)
+        {
+            if (target == null) break;
+
+            //Kick off the movement dash lunge script
+            if (movementJuice != null)
+            {
+                movementJuice.TriggerLungeAnimation();
+            }
+
+
+            int finalCalculatedDamage = DamageCalculator.CalculateModifiedDamage(baseDamagePerHit, myEnemyComponent, target);
+
+            //Subtract player health metrics
+            target.TakeDamage(finalCalculatedDamage);
+
+            //Pause briefly before processing the next strike loop so the hits feel heavy and distinct (e.g. 0.22 seconds)
+            yield return new WaitForSeconds(0.22f);
+        }
     }
 
     private void IncrementPatternLoop()

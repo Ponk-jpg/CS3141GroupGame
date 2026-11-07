@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StatusEffectData
   effectName: Frail
   description: Entity Blocks for 50% less
-  icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  icon: {fileID: 8436380771793470494, guid: 403ca253ec15fa44ab875f521aa2c443, type: 3}
   decaysAtEndOfTurn: 1
   hideAtZeroStacks: 1
   type: 4

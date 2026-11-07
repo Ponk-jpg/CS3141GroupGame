@@ -33,7 +33,8 @@ public class EnemySpawnManager : MonoBehaviour
 
     [Tooltip("Default padding space between smaller minion entities.")]
     public float standardSpacing = 150f;
-
+    public float YSpacing = 0.5f;
+    public float CenteredSpacing = 0.5f;
     // dynamic runtime tracking list
     private List<ProceduralSlot> activeSlots = new List<ProceduralSlot>();
 
@@ -60,12 +61,12 @@ public class EnemySpawnManager : MonoBehaviour
         {
             // Normalize spacing indexes between -0.5 and 0.5 to keep everything centered
             // Change based on vibes
-            float t = totalSlotsToCreate > 1 ? (float)i / (totalSlotsToCreate - 1) : 0.5f;
-            float normalizedHorizontal = t - 0.5f;
+            float t = totalSlotsToCreate > 1 ? (float)i / (totalSlotsToCreate - 1) : CenteredSpacing;
+            float normalizedHorizontal = t - CenteredSpacing;
 
             float xPos = groupCenterOffset.x + (normalizedHorizontal * (totalSlotsToCreate - 1) * calculatedSpacing);
             // Stagger alternate slots slightly on the Y-axis to give it depth, NOTE: change these values to be dynamic
-            float yPos = groupCenterOffset.y + (i % 2 == 0 ? 0.5f : -0.5f);
+            float yPos = groupCenterOffset.y + (i % 2 == 0 ? YSpacing : -YSpacing);
 
             Vector2 spawnCoords = new Vector2(xPos, yPos);
 

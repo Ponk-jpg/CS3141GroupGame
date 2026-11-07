@@ -27,4 +27,7 @@ public class CardData : ScriptableObject
     [Header("Sequential Card effects Pool")]
     public List<CardEffectData> cardEffectsPool = new List<CardEffectData>();
 
+    [Header("Special Attributes")]
+    [Tooltip("If this is checked ON, the card will automatically exhaust after being played.")]
+    public bool isExhaustOnPlay = false;
 }

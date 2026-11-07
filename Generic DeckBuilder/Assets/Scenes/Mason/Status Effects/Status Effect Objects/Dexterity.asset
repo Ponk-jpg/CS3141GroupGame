@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StatusEffectData
   effectName: Dexterity
   description: Gain X more block from blocking
-  icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  icon: {fileID: 9120180259445287647, guid: ba4d733d07bc5d44c9f71a5d17662684, type: 3}
   decaysAtEndOfTurn: 0
   hideAtZeroStacks: 1
   type: 1

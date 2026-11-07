@@ -12,7 +12,7 @@ using System;
 // this class mainly controls what UI elements are doing what for all of the cards on screen, along with displaying UI elements
 // for the player to see what is happening with a given card.
 [RequireComponent(typeof(CanvasGroup))]
-public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
 {
     [Header("Energy Cost Colors")]
     public Color affordableColor = Color.white;
@@ -40,7 +40,7 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     private PlayerHand2D handManager;
     private TargetingSystem2D targetingSystem;
     private CardTargetType cardTargetType;
-    private CardData myCardData;
+    public CardData myCardData;
 
     private Vector2 layoutPosition;
     private Quaternion layoutRotation;
@@ -75,7 +75,22 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         StatusController.OnAnyStatusChanged -= HandleGlobalStatusChanged;
 
     }
-    
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        // Check if the deck is actively holding out for an in-hand exhaust selection
+        if (DeckManager.IsInExhaustSelectionMode)
+        {
+            DeckManager deckManager = UnityEngine.Object.FindAnyObjectByType<DeckManager>();
+            if (deckManager != null)
+            {
+                // Deliver this card instance straight to the selection processor 
+                deckManager.ProcessInHandCardSelection(this);
+            }
+        }
+    }
+
+
     // delegate handler for basic conditions.
     private void HandleGlobalStatusChanged()
     {
@@ -255,8 +270,15 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     // event that plays when we click and try dragging a card, will only drag if we have the ability to.
     public void OnBeginDrag(PointerEventData eventData)
     {
+        if (DeckManager.IsInExhaustSelectionMode)
+        {
 
-        if (!DeckManager.IsPlayerTurn) return;
+            eventData.pointerDrag = null;
+            return;
+        }
+
+
+        if (!isDragAllowed || !DeckManager.IsPlayerTurn) return;
 
 
         DeckManager deckEngine = handManager.GetComponent<DeckManager>();
@@ -570,10 +592,26 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     // Resolves the baseline math arithmetic action directly onto the character instance
     private void ProcessSingleEffectActivation(CardEffectData effect, CharacterStats recipient, PlayerStats playerRef)
     {
+        DeckManager deckManager = UnityEngine.Object.FindAnyObjectByType<DeckManager>();
+        PlayerHand2D handSystem = UnityEngine.Object.FindAnyObjectByType<PlayerHand2D>();
+
         switch (effect.effectType)
         {
             case EffectType.DealDamage:
                 // calculate full damage modifications (strength weak etc)
+
+                if (playerRef != null)
+                {
+                    TransformJuice playerJuice = playerRef.GetComponent<TransformJuice>();
+                    if (playerJuice != null)
+                    {
+
+                        playerJuice.TriggerLungeAnimation();
+
+                    }
+
+                }
+
                 int finalDamage = DamageCalculator.CalculateModifiedDamage(effect.intensityValue, playerRef, recipient);
                 recipient.TakeDamage(finalDamage);
                 break;
@@ -591,7 +629,7 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
 
             case EffectType.GainEnergy:
                 DeckManager energyEngine = UnityEngine.Object.FindAnyObjectByType<DeckManager>();
-                if (energyEngine != null) energyEngine.SpendEnergy(-effect.intensityValue);
+                if (energyEngine != null) energyEngine.GainEnergy(effect.intensityValue);
                 break;
 
             case EffectType.ApplyStatusEffect:
@@ -600,8 +638,116 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
                     recipient.StatusEngine.ApplyStatus(effect.statusToApply, effect.intensityValue);
                 }
                 break;
+            case EffectType.ExhaustHandCards:
+                if (deckManager == null || handSystem == null) return;
+
+                // Extract a runtime list copy of active visual cards currently sitting in your hand
+                List<CardController> targetsInHand = new List<CardController>(handSystem.GetCardsInHand());
+
+                // Safety filter: Do not let a card exhaust itself mid-execution frame
+                targetsInHand.Remove(this);
+
+
+                // skipp screen selection since it is random
+                if (effect.selectionMode == CardSelectionMode.Random)
+                {
+                    List<CardController> randomPicks = new List<CardController>();
+                    int itemsToBurn = Mathf.Min(effect.cardsToExhaustCount, targetsInHand.Count);
+                    for (int i = 0; i < itemsToBurn; i++)
+                    {
+                        int rndIdx = UnityEngine.Random.Range(0, targetsInHand.Count);
+                        randomPicks.Add(targetsInHand[rndIdx]);
+                        targetsInHand.RemoveAt(rndIdx);
+                    }
+
+                    // Route direct array execution cleanly
+                    ExecuteExhaustionPayload(randomPicks, effect, playerRef, recipient, deckManager, handSystem);
+                }
+                else
+                {
+                    deckManager.EnterInHandExhaustMode(effect, this, playerRef, recipient);
+                }
+                break;
+
         }
     }
+
+    public void ExecuteExhaustionPayload(List<CardController> burningCards, CardEffectData configEffect, PlayerStats playerRef, CharacterStats recipient, DeckManager deckManager, PlayerHand2D handSystem)
+    {
+        int totalBurnedThisFrame = 0;
+
+        foreach (CardController card in burningCards)
+        {
+            if (card == null) continue;
+
+            //Shove into backend persistent exhaust arrays tracking piles
+            deckManager.ExhaustCard(card.myCardData);
+
+            //Remove out of live operational hand trackers and wipe scene object
+            handSystem.RemoveCardFromHand(card);
+            Destroy(card.gameObject);
+
+            totalBurnedThisFrame++;
+        }
+
+        //  EXHAUSTION METRICS RESOLUTIONS 
+        if (totalBurnedThisFrame > 0)
+        {
+            // Process dynamic mid-combat cards generations drops
+            if (configEffect.cardToGenerateTemplate != null)
+            {
+                ExecuteCardGeneration(configEffect.cardToGenerateTemplate, configEffect.targetDestination, configEffect.generationAmount, deckManager);
+            }
+
+            // Process infinite chained scaled operations (e.g. 7 block per chosen card)
+            foreach (SubEffect linkedEffect in configEffect.followUpEffectsPool)
+            {
+                CardEffectData scaledCopy = new CardEffectData();
+                scaledCopy.effectType = linkedEffect.effectType;
+                scaledCopy.targetFilter = linkedEffect.targetFilter;
+                scaledCopy.intensityValue = linkedEffect.intensityValue * totalBurnedThisFrame;
+                scaledCopy.statusToApply = linkedEffect.statusToApply;
+                scaledCopy.repeatCount = linkedEffect.repeatCount;
+
+                ResolveAndExecuteEffect(scaledCopy, playerRef, recipient as CombatEnemy, deckManager.GetComponent<BattleManager>());
+            }
+        }
+    }
+
+    // Dynamic generation routing factory hub
+    private void ExecuteCardGeneration(CardData template, DestinationPile targetDest, int amount, DeckManager deck)
+    {
+        for (int i = 0; i < amount; i++)
+        {
+            switch (targetDest)
+            {
+                case DestinationPile.Hand:
+                    // Utilizes scalable hand generation limits
+                    deck.GenerateCardMidCombat(template);
+                    break;
+
+                case DestinationPile.DrawPile:
+
+                    List<CardData> drawList = deck.GetDrawPile();
+
+                    int randomInsertIndex = UnityEngine.Random.Range(0, drawList.Count + 1);
+                    if (drawList.Count == 0)
+                    {
+                        randomInsertIndex = 0;
+                    }
+
+                    drawList.Insert(randomInsertIndex, template); // randomly place the card into the draw pile.
+                    UnityEngine.Debug.Log($"[GENERATION] Shoved {template.Name} onto the top of the Draw Pile.");
+                    break;
+
+                case DestinationPile.DiscardPile:
+                    deck.GetDiscardPile().Add(template);
+                    UnityEngine.Debug.Log($"[GENERATION] Sent generated copy of {template.Name} into Discard Pile storage.");
+                    break;
+            }
+        }
+    }
+
 
     // used to update the hand UI and deck effects to update most UI instances that revolve around playing cards.
     private void FinalizeCardPlay()
@@ -612,7 +758,22 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
 
             deckEngine.SpendEnergy(myCardData.energyCost);
 
-            deckEngine.DiscardCard(myCardData);
+            if (myCardData.isExhaustOnPlay)
+            {
+
+                deckEngine.ExhaustCard(myCardData);
+
+                UnityEngine.Debug.Log($"[SELF-EXHAUST] {myCardData.Name} successfully exhausted itself");
+
+                StatusController.OnAnyStatusChanged?.Invoke();
+
+            }
+            else
+            {
+
+                deckEngine.DiscardCard(myCardData);
+
+            }
         }
 
         handManager.RemoveCardFromHand(this);

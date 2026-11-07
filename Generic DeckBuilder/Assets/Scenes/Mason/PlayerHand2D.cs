@@ -24,6 +24,11 @@ public class PlayerHand2D : MonoBehaviour
 
     public void AddCardToHand(CardData data)
     {
+        if (data == null)
+        {
+            return;
+        }
+
         GameObject spawnedCard = Instantiate(cardPrefab, transform);
         CardController controller = spawnedCard.GetComponent<CardController>();
 

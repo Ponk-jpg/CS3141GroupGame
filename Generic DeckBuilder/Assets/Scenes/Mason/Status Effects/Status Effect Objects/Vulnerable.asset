@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StatusEffectData
   effectName: Vulnerable
   description: Entity Takes 50% more damage
-  icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  icon: {fileID: 2463662529261404855, guid: 2a2cbb54bb2d4fb428e57b8b4015a133, type: 3}
   decaysAtEndOfTurn: 1
   hideAtZeroStacks: 1
   type: 2

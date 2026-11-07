@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StatusEffectData
   effectName: Weakness
   description: Entity Deals 25% less damage
-  icon: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  icon: {fileID: -3283612493280777368, guid: aa763754265ade24f8915c99a2c91a9d, type: 3}
   decaysAtEndOfTurn: 1
   hideAtZeroStacks: 1
   type: 3
