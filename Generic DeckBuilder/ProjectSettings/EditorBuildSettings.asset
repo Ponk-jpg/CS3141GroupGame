@@ -6,6 +6,12 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/Kayla/MainMenu.unity
+    guid: 3387c6f9e018c1e49b4e4f3860960f87
+  - enabled: 1
+    path: Assets/Scenes/Kayla/BaseLevel_KaylaCopy.unity
+    guid: f31f34bf5a8bfaf4c9c9f2b763c8e44c
+  - enabled: 1
     path: Assets/Scenes/BaseLevel.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
   m_configObjects:
