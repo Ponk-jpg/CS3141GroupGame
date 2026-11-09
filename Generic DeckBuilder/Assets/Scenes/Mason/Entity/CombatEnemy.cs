@@ -15,7 +15,7 @@ public class CombatEnemy : CharacterStats
     public EnemyData enemyConfigurationData;
 
     [Header("Local Object UI Component Slots")]
-    public SpriteRenderer visualSpriteRenderer;
+    public Image visualSpriteRenderer;
     public TextMeshProUGUI nameText;
     public Slider healthSlider;
     public TextMeshProUGUI healthText;
