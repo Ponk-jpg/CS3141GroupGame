@@ -16,6 +16,7 @@ MonoBehaviour:
   Description: Deal [D] damage 2 times. Gain 3 Strength. Give the enemy 1 strength.
   energyCost: 2
   artwork: {fileID: 0}
+  Background: {fileID: 2584497790001384318, guid: e4f5e1dad1d48cc4c9df78b614debe96, type: 3}
   cardID: 0
   targetType: 1
   cardEffectsPool:

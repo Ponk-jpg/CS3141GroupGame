@@ -16,6 +16,7 @@ MonoBehaviour:
   Description: Deal 2 Vulnerable
   energyCost: 1
   artwork: {fileID: 0}
+  Background: {fileID: -7433041399152909678, guid: dff4ca22a56b8d04da5549d01915a7da, type: 3}
   cardID: 2
   targetType: 1
   cardEffectsPool:

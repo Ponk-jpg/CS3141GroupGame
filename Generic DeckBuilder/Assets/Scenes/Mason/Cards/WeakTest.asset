@@ -16,6 +16,7 @@ MonoBehaviour:
   Description: Deal 2 Weak
   energyCost: 1
   artwork: {fileID: 0}
+  Background: {fileID: -7433041399152909678, guid: dff4ca22a56b8d04da5549d01915a7da, type: 3}
   cardID: 3
   targetType: 1
   cardEffectsPool:
@@ -24,5 +25,10 @@ MonoBehaviour:
     intensityValue: 2
     repeatCount: 1
     statusToApply: {fileID: 11400000, guid: bb4d577222c102546a8a360764ff6c7b, type: 2}
-  attackDamageValue: 0
-  blockValue: 0
+    selectionMode: 0
+    cardsToExhaustCount: 1
+    cardToGenerateTemplate: {fileID: 0}
+    targetDestination: 0
+    generationAmount: 1
+    followUpEffectsPool: []
+  isExhaustOnPlay: 0

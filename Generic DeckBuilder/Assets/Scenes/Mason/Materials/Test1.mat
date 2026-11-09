@@ -50,7 +50,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _EntityCount: 2
+    - _EntityCount: 5
     - _GlobalShadowSize: 1
     - _MaxShadowDarkness: 0.095
     - _QueueControl: 0

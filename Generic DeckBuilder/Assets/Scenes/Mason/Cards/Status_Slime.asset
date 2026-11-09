@@ -16,6 +16,7 @@ MonoBehaviour:
   Description: Draw 1 card. Exhaust
   energyCost: 1
   artwork: {fileID: 0}
+  Background: {fileID: 6894929934875589815, guid: 54315dd36b34e2a458bfad77beb3bd97, type: 3}
   cardID: 99
   targetType: 0
   cardEffectsPool:

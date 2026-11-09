@@ -15,7 +15,8 @@ MonoBehaviour:
   Name: Defend
   Description: Gain [B] Block
   energyCost: 1
-  artwork: {fileID: 0}
+  artwork: {fileID: 2537882373423050008, guid: 1955728713da9304ab8fd6ba6ae95fd0, type: 3}
+  Background: {fileID: -7433041399152909678, guid: dff4ca22a56b8d04da5549d01915a7da, type: 3}
   cardID: 1
   targetType: 0
   cardEffectsPool:
@@ -24,5 +25,10 @@ MonoBehaviour:
     intensityValue: 5
     repeatCount: 1
     statusToApply: {fileID: 0}
-  attackDamageValue: 0
-  blockValue: 5
+    selectionMode: 0
+    cardsToExhaustCount: 1
+    cardToGenerateTemplate: {fileID: 0}
+    targetDestination: 0
+    generationAmount: 1
+    followUpEffectsPool: []
+  isExhaustOnPlay: 0

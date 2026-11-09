@@ -16,6 +16,7 @@ MonoBehaviour:
   Description: Deal [D] damage to random enemies 3 times.
   energyCost: 1
   artwork: {fileID: 0}
+  Background: {fileID: 2584497790001384318, guid: e4f5e1dad1d48cc4c9df78b614debe96, type: 3}
   cardID: 0
   targetType: 0
   cardEffectsPool:

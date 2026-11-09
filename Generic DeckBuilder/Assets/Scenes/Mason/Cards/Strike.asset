@@ -16,6 +16,7 @@ MonoBehaviour:
   Description: Deal [D] damage
   energyCost: 1
   artwork: {fileID: 0}
+  Background: {fileID: 2584497790001384318, guid: e4f5e1dad1d48cc4c9df78b614debe96, type: 3}
   cardID: 0
   targetType: 1
   cardEffectsPool:
@@ -24,5 +25,10 @@ MonoBehaviour:
     intensityValue: 6
     repeatCount: 1
     statusToApply: {fileID: 0}
-  attackDamageValue: 6
-  blockValue: 0
+    selectionMode: 0
+    cardsToExhaustCount: 1
+    cardToGenerateTemplate: {fileID: 0}
+    targetDestination: 0
+    generationAmount: 1
+    followUpEffectsPool: []
+  isExhaustOnPlay: 0

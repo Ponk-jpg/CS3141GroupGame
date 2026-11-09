@@ -27,6 +27,7 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     public TextMeshProUGUI descriptionText;
     public TextMeshProUGUI costText;
     public UnityEngine.UI.Image artworkImage;
+    public UnityEngine.UI.Image BackgroundImage;
 
     [Header("Hover Animation Settings")]
     public float hoverScale = 1.25f;
@@ -169,6 +170,7 @@ public class CardController : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         handManager = manager;
         myCardData = data;
 
+        BackgroundImage.sprite = data.Background;
         nameText.text = data.Name;
         descriptionText.text = data.Description;
         costText.text = data.energyCost.ToString();

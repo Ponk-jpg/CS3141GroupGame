@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Net;
 using UnityEngine;
+using UnityEngine.UI;
 
 public enum CardTargetType
 {
@@ -19,6 +20,7 @@ public class CardData : ScriptableObject
     public string Description;
     public int energyCost;
     public Sprite artwork;
+    public Sprite Background;
     public int cardID;
 
     [Header("Targeting Configuration")]

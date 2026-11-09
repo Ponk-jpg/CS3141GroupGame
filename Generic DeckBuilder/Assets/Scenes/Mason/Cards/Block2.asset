@@ -16,6 +16,7 @@ MonoBehaviour:
   Description: Gain [B] block. Draw 2 cards.
   energyCost: 1
   artwork: {fileID: 0}
+  Background: {fileID: -7433041399152909678, guid: dff4ca22a56b8d04da5549d01915a7da, type: 3}
   cardID: 0
   targetType: 0
   cardEffectsPool:

@@ -15,7 +15,7 @@ public class MainMenuController : MonoBehaviour
     // Loads the game scene when Play is clicked.
     public void PlayGame()
     {
-        SceneManager.LoadScene("BaseLevel_KaylaCopy");
+        SceneManager.LoadScene("BaseLevel");
     }
 
     // Hides the main menu and displays Settings.

@@ -15,7 +15,8 @@ MonoBehaviour:
   Name: Sly
   Description: 'Exhaust 1 card from your hand, gain [B] block. '
   energyCost: 1
-  artwork: {fileID: 0}
+  artwork: {fileID: 2537882373423050008, guid: 1955728713da9304ab8fd6ba6ae95fd0, type: 3}
+  Background: {fileID: -7433041399152909678, guid: dff4ca22a56b8d04da5549d01915a7da, type: 3}
   cardID: 4
   targetType: 0
   cardEffectsPool:
@@ -41,3 +42,4 @@ MonoBehaviour:
     targetDestination: 0
     generationAmount: 0
     followUpEffectsPool: []
+  isExhaustOnPlay: 0
