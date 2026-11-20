@@ -13,6 +13,7 @@ public class PlayerStats : CharacterStats
     public TextMeshProUGUI nameText;
     public Slider healthSlider;
     public TextMeshProUGUI healthText;
+    public GameObject gameOverPanel;
 
     [Header("Local Block UI Components")]
     public GameObject blockShieldUIContainer;
@@ -112,12 +113,27 @@ public class PlayerStats : CharacterStats
     }
 
     protected override void Die()
-    {
-        base.Die();
-        UnityEngine.Debug.LogError("============= GAME OVER: PLAYER DIED =============");
-        // This is game over screen thing
-    }
+{
+    base.Die();
+    Time.timeScale = 0f;
 
+    UnityEngine.Debug.LogError("============= GAME OVER: PLAYER DIED =============");
+
+    if (gameOverPanel != null)
+    {
+        gameOverPanel.SetActive(true);
+    }
+    else
+    {
+        UnityEngine.Debug.LogError("[GAME OVER] Game Over Panel is not assigned!");
+    }
+}
+
+public void ReturnToMainMenu()
+{
+    Time.timeScale = 1f;
+    UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+}
 
 
 }
