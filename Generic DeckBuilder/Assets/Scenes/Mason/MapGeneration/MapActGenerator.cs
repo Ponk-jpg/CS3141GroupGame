@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MapActGenerator : MonoBehaviour
 {
@@ -10,8 +11,7 @@ public class MapActGenerator : MonoBehaviour
 
     [Header("Rest Site Fixed Positions")]
     [Tooltip("forces a campfire right before the boss at floor 14.")]
-    public List<int> guaranteedRestSiteFloors = new List<int>() { 14 };
-
+    public List<int> guaranteedRestSiteFloors = new List<int>() { 3, 6, 9, 12, 14 };
     // Our actual runtime list array of 15 floors
     private List<MapNode> currentActLayout = new List<MapNode>();
     private int currentFloorIndex = 0; // Tracks player progress (0 to 14)
@@ -132,10 +132,9 @@ public class MapActGenerator : MonoBehaviour
                 break;
 
             case NodeType.RestSite:
-                UnityEngine.Debug.Log("[CAMPFIRE] Open rest site UI panel (Choose: remove a card or Heal HP)");
-                // Simulating clearing a rest site immediately for now by clicking through to next floor
-                battleManager.testDifficultySetting = EncounterDifficulty.Easy;
-                stateManager.StartCombat();
+                UnityEngine.Debug.Log("[CAMPFIRE] Loading Rest Stop scene...");
+
+                SceneManager.LoadScene("RestStop", LoadSceneMode.Additive);
 
                 break;
         }

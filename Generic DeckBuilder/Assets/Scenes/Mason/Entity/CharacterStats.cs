@@ -26,6 +26,22 @@ public abstract class CharacterStats : MonoBehaviour
     public int GetCurrentHealth() => currentHealth;
     public int GetCurrentBlock() => currentBlock;
 
+    // --- UNIVERSAL MATH: RESTORING HEALTH ---
+    public virtual void Heal(int amount)
+    {
+        currentHealth += amount;
+
+        // Do not allow health to exceed maximum health
+        if (currentHealth > maxHealth)
+            currentHealth = maxHealth;
+
+        UnityEngine.Debug.Log($"[HEAL] {combatantName} healed +{amount} HP. Current Health: {currentHealth}/{maxHealth}");
+
+        // Update health UI
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+    }
+
+
     protected virtual void Awake()
     {
         StatusEngine = GetComponent<StatusController>();
